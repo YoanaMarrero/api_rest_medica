@@ -73,8 +73,17 @@ switch ($request_method) {
     case 'DELETE':
         // DELETE (CRUD)
 
-        // Recibimos los datos enviados
-        $postBody = file_get_contents("php://input");
+        $headers = getallheaders();
+        if (isset($headers['token']) && isset($headers['pacienteid'])){
+            $params = [
+                "token" => $headers["token"],
+                "pacienteid" => $headers["pacienteid"]
+            ];
+            $postBody = json_encode($params);
+        } else {
+            // Recibimos los datos enviados
+            $postBody = file_get_contents("php://input");
+        }
 
         // Enviamos los datos al manejador
         $response = $_pacientes->delete($postBody);
@@ -84,6 +93,7 @@ switch ($request_method) {
         $responseCode = (isset($datosArray['result']['error_id'])) ? $datosArray['result']['error_id'] : 200;
         http_response_code($responseCode);
         echo json_encode($response);
+            
         break;
 
     default:
