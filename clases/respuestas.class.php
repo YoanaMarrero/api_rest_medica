@@ -26,6 +26,15 @@ class respuestas{
         return $this->response;
     }
 
+    public function error_401($string = 'Acceso no autorizado.'){
+        $this->response["status"] = "error";
+        $this->response["result"] = array(
+            "error_id" => "401",
+            "error_msg" => $string
+        );
+        return $this->response;
+    }
+
     // Para cuando remiten un metodo no aceptado
     public function error_405(){
         $this->response["status"] = "error";
