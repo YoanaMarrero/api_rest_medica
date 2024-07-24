@@ -69,11 +69,21 @@ switch ($request_method) {
         http_response_code($responseCode);
         echo json_encode($response);
         break;
-        break;
 
     case 'DELETE':
         // DELETE (CRUD)
-        echo 'Hola metodo:' .$request_method;
+
+        // Recibimos los datos enviados
+        $postBody = file_get_contents("php://input");
+
+        // Enviamos los datos al manejador
+        $response = $_pacientes->delete($postBody);
+        
+        // Devolvemos una respuesta
+        header('Content-Type: application/json');
+        $responseCode = (isset($datosArray['result']['error_id'])) ? $datosArray['result']['error_id'] : 200;
+        http_response_code($responseCode);
+        echo json_encode($response);
         break;
 
     default:

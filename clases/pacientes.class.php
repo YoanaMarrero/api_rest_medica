@@ -119,10 +119,7 @@ class pacientes extends conexion {
     }
 
     private function actualizarPaciente(){
-        $query = "UPDATE " .$this->tabla ." SET DNI='" .$this->dni ."', Nombre='" .$this->nombre ."', 
-            Direccion='" .$this->direccion ."', CodigoPostal='" .$this->codigoPostal ."', 
-            Telefono='" .$this->telefono ."', Genero='" .$this->genero ."', FechaNacimiento ='" .$this->fechaNacimiento 
-            ."', Correo = '" .$this->correo ."' WHERE PacienteId=" .$this->pacienteid;
+        $query = "UPDATE " .$this->tabla ." WHERE PacienteId=" .$this->pacienteid;
         $result = parent::nonQuery($query);
         if ($result)
             return $result;
@@ -130,4 +127,40 @@ class pacientes extends conexion {
             return 0;
     }
 
+    public function delete($jsonData){
+        $_respuestas = new respuestas;
+        $data = json_decode($jsonData, true);
+
+        // Procedemos a validar si los datos que nos remiten son los necesarios para realizar
+        // un insert into.
+        // En nuestro ejemplo los campos requeridos serán dni, nombre, correo
+        if (!isset($data['pacienteid'])) {
+            return $_respuestas->error_400();
+        }
+        else {
+            $this->pacienteid = $data['pacienteid'];           
+
+            $pacienteEliminado =  $this->eliminarPaciente();
+            if ($pacienteEliminado){
+                $result = $_respuestas->response;
+                $result['result'] = array(
+                    "pacienteId" => $this->pacienteid
+                );
+                return $result;
+            } 
+            else {
+                // Si se produjo algún error y el registro no se hizo.
+                return $_respuestas->error_500('Error interno, paciente no actualizado.');
+            }
+        } 
+    }
+
+    private function eliminarPaciente(){
+        $query = "DELETE FROM " .$this->tabla ." WHERE PacienteId=" .$this->pacienteid;
+        $result = parent::nonQuery($query);
+        if ($result)
+            return $result;
+        else
+            return 0;
+    }
 }
