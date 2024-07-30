@@ -16,6 +16,7 @@ class pacientes extends conexion {
     private $correo = '';
     private $cantidadPagina = 100;
     private $token = '';
+    private $imagen = '';
     
     private function buscarToken(){
         $query = "SELECT TokenId, UsuarioId, Estado from usuarios_token 
@@ -39,9 +40,9 @@ class pacientes extends conexion {
 
     private function insertarPaciente(){
         $query = "INSERT INTO " .$this->tabla ." (DNI, Nombre, Direccion, CodigoPostal, Telefono, Genero, 
-            FechaNacimiento, Correo) VALUES ('" .$this->dni ."','" .$this->nombre ."','" .$this->direccion ."','"
+            FechaNacimiento, Correo, Imagen) VALUES ('" .$this->dni ."','" .$this->nombre ."','" .$this->direccion ."','"
             .$this->codigoPostal ."','" .$this->telefono ."','" .$this->genero ."','" .$this->fechaNacimiento 
-            ."','" .$this->correo ."')";
+            ."','" .$this->correo  ."','" .$this->imagen ."')";
         $result = parent::nonQueryId($query);
         if ($result)
             return $result;
@@ -70,6 +71,18 @@ class pacientes extends conexion {
             return 0;
     }
 
+    private function procesarImagen($img){
+        $direccion = dirname(__DIR__) ."\public\imagenes\\";
+        $partes = explode(";base64,", $img);
+        $extension = explode('/', mime_content_type($img))[1];
+        $imagen_base64 = base64_decode($partes[1]);
+        $file = $direccion .uniqid() .'.' .$extension;
+        file_put_contents($file, $imagen_base64);
+        $fileBD = str_replace('\\', '/', $file);
+        // En este punto podríamos redimensionar la imagen.
+        return $fileBD;
+    }
+
     public function listaPacientes($pagina = 1){
         $inicio = 0;
         $cantidad = $this->cantidadPagina;
@@ -91,7 +104,6 @@ class pacientes extends conexion {
     public function post($jsonData){
         $_respuestas = new respuestas;
         $data = json_decode($jsonData, true);
-        
         if (!isset($data['token'])){
             return $_respuestas->error_401();
         } else {
@@ -113,6 +125,9 @@ class pacientes extends conexion {
                     if (isset($data['genero'])) $this->genero = $data['genero'];
                     if (isset($data['telefono'])) $this->telefono = $data['telefono'];
                     if (isset($data['fechaNacimiento'])) $this->fechaNacimiento = $data['fechaNacimiento'];
+                    if (isset($data['imagen'])) {
+                        $this->imagen = $this->procesarImagen($data['imagen']);
+                    }
 
                     $pacienteGenerado =  $this->insertarPaciente();
                     if ($pacienteGenerado){
